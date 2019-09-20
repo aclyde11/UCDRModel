@@ -26,6 +26,6 @@ model.compile(optimizer=keras.optimizers.Adam(learning_rate=1e-4),
               loss='mse',
               metrics=['mse'])
 
-chck = keras.callbacks.callbacks.ModelCheckpoint("./", monitor='val_loss', verbose=0, save_best_only=True, save_weights_only=False, mode='auto', period=1)
+chck = keras.callbacks.callbacks.ModelCheckpoint("checkpoints", monitor='val_loss', verbose=0, save_best_only=True, save_weights_only=False, mode='auto', period=1)
 
 model.fit(trainX, trainY, validation_data=[testX, testY], epochs=200, batch_size=32, verbose=1, callbacks=[chck])
