@@ -25,4 +25,4 @@ def get_model(input_size=784):
     # This creates a model that includes
     # the Input layer and three Dense layers
     model = Model(inputs=inputs, outputs=predictions)
-    return get_model
+    return model

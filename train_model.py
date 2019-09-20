@@ -23,4 +23,4 @@ model = get_model(trainX.shape[1])
 model.compile(optimizer='adam',
               loss='mse',
               metrics=['mse'])
-model.fit(trainX, trainY, epochs=50, batch_size=32 )
+model.fit(trainX, trainY, epochs=50, batch_size=32, verbose=1)
