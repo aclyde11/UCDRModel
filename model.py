@@ -20,7 +20,7 @@ def get_model(input_size=784, dropout=0.2):
     x = Dense(64, activation='relu')(x)
     x = Dropout(dropout * 0.2)(x)
 
-    predictions = Dense(1, activation=None)(x)
+    predictions = Dense(2, activation='softmax')(x)
 
     # This creates a model that includes
     # the Input layer and three Dense layers

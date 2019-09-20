@@ -20,11 +20,15 @@ trainX, trainY = np.load(args.trainX), np.load(args.trainY)
 testX, testY = np.load(args.testX), np.load(args.testY)
 print("done loading data.")
 
+trainY = keras.utils.to_categorical((trainY >= 0.5).astype(np.int32))
+testY = keras.utils.to_categorical((testY >= 0.5).astype(np.int32))
+
+
 model = get_model(trainX.shape[1])
 
 model.compile(optimizer=keras.optimizers.SGD(learning_rate=1e-5),
-              loss='mse',
-              metrics=['mse'])
+              loss='categorical_crossentropy',
+              metrics=['acc'])
 
 chck = keras.callbacks.callbacks.ModelCheckpoint("checkpoints", monitor='val_loss', verbose=0, save_best_only=True, save_weights_only=False, mode='auto', period=1)
 
