@@ -8,7 +8,7 @@ def get_args():
     parser.add_argument('--trainY', help='trainY npy', type=str, required=True)
     parser.add_argument('--testX', help='testX npy', type=str, required=True)
     parser.add_argument('--testY', help='testY npy', type=str, required=True)
-    args = parser.parse_args(())
+    args = parser.parse_args()
     return args
 
 args = get_args()
