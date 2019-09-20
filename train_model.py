@@ -13,9 +13,10 @@ def get_args():
 
 args = get_args()
 
+print("loading data")
 trainX, trainY = np.load(args.trainX), np.load(args.trainY)
 testX, testY = np.load(args.testX), np.load(args.testY)
-
+print("done loading data.")
 
 model = get_model(trainX.shape[1])
 
