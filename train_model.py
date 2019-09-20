@@ -16,8 +16,8 @@ def get_args():
 args = get_args()
 
 print("loading data")
-#trainX, trainY = np.load(args.trainX), np.load(args.trainY)
-trainX, trainY = np.load(args.testX), np.load(args.testY)
+trainX, trainY = np.load(args.trainX), np.load(args.trainY)
+testX, testY = np.load(args.testX), np.load(args.testY)
 print("done loading data.")
 
 model = get_model(trainX.shape[1])
@@ -28,4 +28,4 @@ model.compile(optimizer=keras.optimizers.Adam(learning_rate=1e-4),
 
 chck = keras.callbacks.callbacks.ModelCheckpoint("./", monitor='val_loss', verbose=0, save_best_only=True, save_weights_only=False, mode='auto', period=1)
 
-model.fit(trainX, trainY, epochs=200, batch_size=32, verbose=1, callbacks=[chck])
+model.fit(trainX, trainY, validation_data=[testY, testY], epochs=200, batch_size=32, verbose=1, callbacks=[chck])
