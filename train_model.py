@@ -1,6 +1,8 @@
 from model import get_model
 import numpy as np
 import argparse
+import keras
+
 
 def get_args():
     parser = argparse.ArgumentParser()
@@ -20,7 +22,10 @@ print("done loading data.")
 
 model = get_model(trainX.shape[1])
 
-model.compile(optimizer='adam',
+model.compile(optimizer=keras.optimizers.Adam(learning_rate=1e-4),
               loss='mse',
               metrics=['mse'])
-model.fit(trainX, trainY, epochs=50, batch_size=32, verbose=1)
+
+chck = keras.callbacks.callbacks.ModelCheckpoint("./", monitor='val_loss', verbose=0, save_best_only=True, save_weights_only=False, mode='auto', period=1)
+
+model.fit(trainX, trainY, epochs=200, batch_size=32, verbose=1, callbacks=[chck])
