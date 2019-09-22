@@ -1,35 +1,22 @@
 from model import get_model
 import numpy as np
-import argparse
-import keras
+import tensorflow.keras as keras
 
+from modelconfig import args
 
-def get_args():
-    parser = argparse.ArgumentParser()
-    parser.add_argument('--trainX', help='trainX npy', type=str, required=True)
-    parser.add_argument('--trainY', help='trainY npy', type=str, required=True)
-    parser.add_argument('--testX', help='testX npy', type=str, required=True)
-    parser.add_argument('--testY', help='testY npy', type=str, required=True)
-    args = parser.parse_args()
-    return args
-
-args = get_args()
 
 print("loading data")
-trainX, trainY = np.load(args.trainX), np.load(args.trainY)
-testX, testY = np.load(args.testX), np.load(args.testY)
+data = np.load(args['cleaned_file'])
+X_train, X_test = data['x_train'], data['x_test']
+Y_train, Y_test = data['y_train'], data['y_test']
 print("done loading data.")
 
-trainY = keras.utils.to_categorical((trainY >= 0.5).astype(np.int32))
-testY = keras.utils.to_categorical((testY >= 0.5).astype(np.int32))
+model = get_model(args['vocab_size'], args['emb_size'], args['max_length'], args['h_size'])
 
+model.compile(optimizer=keras.optimizers.Adam(learning_rate=1e-4),
+              loss='mse',
+              metrics=['mse'])
 
-model = get_model(trainX.shape[1])
+chck = keras.callbacks.ModelCheckpoint("checkpoints", monitor='val_loss', verbose=0, save_best_only=True, save_weights_only=False, mode='auto', period=1)
 
-model.compile(optimizer=keras.optimizers.SGD(learning_rate=1e-5),
-              loss='categorical_crossentropy',
-              metrics=['acc'])
-
-chck = keras.callbacks.callbacks.ModelCheckpoint("checkpoints", monitor='val_loss', verbose=0, save_best_only=True, save_weights_only=False, mode='auto', period=1)
-
-model.fit(trainX, trainY, validation_data=[testX, testY], epochs=500, batch_size=128, verbose=1, callbacks=[chck])
+model.fit(X_train, Y_train, validation_data=[X_test, Y_test], epochs=500, batch_size=128, verbose=1, callbacks=[chck])
