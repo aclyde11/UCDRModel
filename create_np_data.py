@@ -1,16 +1,18 @@
+import random
+
 import numpy as np
-import pandas as pd
-import sys
-from modelconfig import args
-from sklearn.model_selection import train_test_split
 from tensorflow.keras.preprocessing.sequence import pad_sequences
 from tqdm import tqdm
+
+from modelconfig import args
+
+
 def load_vocab(name):
     tokens = []
     with open(name, 'r') as f:
         for token in f:
             tokens.append(token[:-1])
-    tokens = {k : (v+1) for v, k in enumerate(tokens)}
+    tokens = {k: (v + 1) for v, k in enumerate(tokens)}
     tokens[' '] = 0
     return tokens
 
@@ -25,41 +27,64 @@ class Tokenizer(object):
         return self.vocab[c]
 
     def tokenize(self, smile):
-        return list(map(self.c2i, smile))
+        result = []
+        for i in smile:
+            result.append(self.vocab[i])
+        return result
+        # return list(map(self.c2i, smile))
 
     def __call__(self, smile):
+        smile = smile
         smile = self.tokenize(smile)
-        padded = pad_sequences([smile], maxlen=self.max_length, dtype='int32', padding='pre', truncating='pre', value=self.pad)
+        padded = pad_sequences([smile], maxlen=self.max_length, dtype='int32', padding='pre', truncating='pre',
+                               value=self.pad)
         return padded
+
 
 fin_name = args['data_file']
 vocab_name = args['vocab_file']
 max_load = args['max_load']
 max_length = args['max_length']
+test_prob = args['test_size']
 print(args)
 
 vocab = load_vocab(vocab_name)
 print(len(vocab))
 tokenizer = Tokenizer(vocab, max_length=max_length)
 
-df = pd.read_csv(fin_name, nrows=max_load)
-train_index, test_index = train_test_split(list(range(df.shape[0])), test_size=0.2)
-df_train, df_test = df.iloc[train_index], df.iloc[test_index]
+# df = pd.read_csv(fin_name, nrows=max_load)
+# train_index, test_index = train_test_split(list(range(df.shape[0])), test_size=0.2)
+# df_train, df_test = df.iloc[train_index], df.iloc[test_index]
 
-trained_toks = []
-ys = []
-for i in tqdm(range(df_train.shape[0])):
-    trained_toks.append(tokenizer(df_train.iloc[i,1]))
-    ys.append(df_train.iloc[i,2])
-X_train = np.concatenate(trained_toks, axis=0).astype(np.int32)
-y_train = np.array(ys, dtype=np.float32)
+train_toks = []
+train_ys = []
+test_toks = []
+test_ys = []
 
-trained_toks = []
-ys = []
-for i in tqdm(range(df_test.shape[0])):
-    trained_toks.append(tokenizer(df_test.iloc[i,1]))
-    ys.append(df_test.iloc[i,2])
-X_test = np.concatenate(trained_toks, axis=0).astype(np.int32)
-y_test = np.array(ys, dtype=np.float32)
+with open(fin_name, 'r') as fin:
+    # skip header
+    next(fin)
 
-np.savez_compressed("cleaned.npz", x_test = X_test, x_train = X_train, y_test = y_test, y_train = y_train)
+    for i, line in tqdm(enumerate(fin), total=max_load):
+        line = line.split(",")
+        smile = line[1]
+        result = tokenizer(smile)
+        y = float(line[2][:-1])
+
+        if random.random() < test_prob:
+            test_toks.append(result)
+            test_ys.append(y)
+        else:
+            train_toks.append(result)
+            train_ys.append(y)
+        if i > max_load:
+            break
+
+X_train = np.concatenate(train_toks, axis=0).astype(np.int32)
+y_train = np.array(train_ys, dtype=np.float32)
+X_test = np.concatenate(test_toks, axis=0).astype(np.int32)
+y_test = np.array(test_ys, dtype=np.float32)
+
+print("%d bytes" % (X_train.size * X_train.itemsize))
+print(X_train.shape, X_test.shape)
+np.savez_compressed("cleaned.npz", x_test=X_test, x_train=X_train, y_test=y_test, y_train=y_train)
